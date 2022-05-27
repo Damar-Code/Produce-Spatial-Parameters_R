@@ -20,27 +20,30 @@ plot(DEM)
 setwd("E:/APRIL/Skill Training/R/Automation/RSAGA")
 
 # Setting RSAGA ENV
-env <- rsaga.env("C:/Program Files/saga-8.2.1_x64/")
+env <- rsaga.env("C:/Program Files/saga-6.3.0_x64")
 rsaga.get.version(env)
 
 # write Tiff to .sgrd to perform raster in RSAGA
 writeRaster(DEM, filename="DEM.sgrd", format="SAGA", overwrite=TRUE)
 
 # List of Module in RSAGA
-rsaga.get.modules("ta_morphometry", env=env)
+rsaga.get.modules(interactive = TRUE, env=env)
+rsaga.get.usage("ta_hydrology", 20, show = TRUE, env=env)
 
 # Produce Spatial Parameters
 ## Slope, Aspect, Plan Curvature, & Profile Curvature
-rsaga.geoprocessor("ta_morphometry", 0, list( ELEVATION = "DEM,sgrd",
+rsaga.geoprocessor("ta_morphometry", 0, list( ELEVATION = "DEM.sgrd",
                                               SLOPE = "Slope",
                                               ASPECT = "Aspect",
-                                              C_PLAN = "Plan Curvature",
-                                              C_PROF = "Profile Curvature", 
-                                              METHOD = 0), env = env)
+                                              UNIT_SLOPE = 1,
+                                              UNIT_ASPECT = 1,
+                                              METHOD = 6), 
+                   env = env)
 
 ## Topographic Position Index
-rsaga.geoprocessor("ta_morphometry", 18, list( DEM = "sgrd",
-                                               TPI = "Topographic Position Index"),
+rsaga.geoprocessor("ta_morphometry", 18, list( DEM = "DEM.sgrd",
+                                               TPI = "Topographic Position Index",
+                                               DW_WEIGHTING = 0),
                    env=env)
 
 ## Topographic Wetness Index
