@@ -18,13 +18,6 @@ plot(DEM)
 env <- rsaga.env("C:/Program Files/saga-6.3.0_x64")
 rsaga.get.version(env)
 
-# write Tiff to .sgrd to perform raster in RSAGA
-writeRaster(DEM, filename="DEM.sgrd", format="SAGA", overwrite=TRUE)
-
-# List of Module in RSAGA
-rsaga.get.modules(interactive = TRUE, env=env)
-rsaga.get.usage("ta_hydrology",21, show = TRUE, env=env)
-
 # Produce Spatial Parameters
 ## Slope, Aspect, Plan Curvature, & Profile Curvature
 rsaga.geoprocessor("ta_morphometry", 0, list( ELEVATION = "DEM.tif",
@@ -57,7 +50,7 @@ rsaga.geoprocessor("ta_morphometry", 18, list( DEM = "DEM.tif",
 
 ## Topographic Wetness Index
 ### Alexander Brenning (R interface), Juergen Boehner and Olaf Conrad (SAGA module) - (The Best: according to the wetness concentrations) 
-rsaga.wetness.index(in.dem = "DEM.tif", out.wetness.index = "Topographic Wetness Index_wetness-index.sgrd", env=env)
+rsaga.wetness.index(in.dem = "DEM.tif", out.wetness.index = "Topographic Wetness Index.sgrd", env=env)
 
 ## Stream Power Index
 rsaga.geoprocessor("ta_hydrology", 21, list( AREA = "DEM.tif",
@@ -65,37 +58,32 @@ rsaga.geoprocessor("ta_hydrology", 21, list( AREA = "DEM.tif",
                                              SPI = "Stream Power Index.sgrd",
                                              CONV = 0), 
                    env=env)
+## Channel Network
+rsaga.geoprocessor("ta_compound",0, list( ELEVATION = "DEM.tif",
+                                          CHANNELS = "Channel Network.shp",
+                                          CHNL_DIST = "Channel Distant.sgrd"),
+                   env=env)
 
-## Landform
-rsaga.geoprocessor("ta_morphometry", )
-
-
-# Save all data into .gtif
-
-
-to.tif <- function(pattern, pattern,destination_folder) {
-  # Grab the file the location and format
-  file_list <- list.files(path = origin_folder, pattern)
-  file_list
-  # Create Folder
-  dir.create(paste0(destination_folder,"/GeoTIFF"))
-  # Save to GeoTiff
-  writeRaster(file_list, 'output.tif', overwrite=TRUE)
-}
-
-
-to.tif(origin_folder = "E:/APRIL/Skill Training/R/Automation/RSAGA",
-       pattern = "sdat$", 
-       destination_folder = "E:/APRIL/Skill Training/R/Automation/RSAGA")
-
-origin_folder = "E:/APRIL/Skill Training/R/Automation/RSAGA"
-pattern = "sdat$"
-destination_folder = "E:/APRIL/Skill Training/R/Automation/RSAGA"
-
-## To GeoTiff
-a <- raster("DEM.tif")
-crs(a) <- "+proj=utm +zone=49 +south +datum=WGS84 +units=m +no_defs"
-writeRaster(a, 'DEM2.tif', overwrite=TRUE)
-
-b <- raster("DEM2.tif")
-plot(b)
+## Create DtD
+### Step 1 - Read Channels File
+DtD <- st_read("Channel Network.shp")
+DtD <- st_zm(DtD)
+DtD <- DtD[DtD$ORDER >= 2,]
+st_write(DtD, "ORDER.shp")
+### Step 2 - Rasterize the Channels
+rsaga.geoprocessor("grid_gridding",0,list( INPUT = "ORDER.shp",
+                                           FIELD = "ORDER",
+                                           OUTPUT = 2,
+                                           TARGET_USER_FITS = 1,
+                                           TARGET_USER_SIZE = 1,
+                                           GRID = "ORDER.sgrd"),
+                   env=env)
+### Step 3 - Proximity Grid
+rsaga.geoprocessor("grid_tools",26,list( FEATURES = "ORDER.sgrd",
+                                         DISTANCE = "DISTANCE.sgrd"),
+                   env=env)
+### Step 4 - Mask with Raster
+rsaga.geoprocessor("grid_tools",24,list( GRID = "DISTANCE.sgrd",
+                                         MASK = "DEM.tif",
+                                         MASKED = "DtD.sgrd"),
+                   env=env)
