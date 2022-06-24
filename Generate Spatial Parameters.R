@@ -4,7 +4,7 @@ lapply(c("RSAGA", "terra", "usethis", "devtools","sp","raster","lattice","rgdal"
 
 
 # Setwd
-setwd("E:/APRIL/Skill Training/R/Automation/RSAGA")
+setwd("...")
 
 #library(devtools) #require to accses gitHUB Packages repository 
 # Read Raster using "raster"
@@ -15,7 +15,7 @@ DEM
 plot(DEM)
 
 # Setting RSAGA ENV
-env <- rsaga.env("C:/Program Files/saga-6.3.0_x64")
+env <- rsaga.env(".../saga-6.3.0_x64")
 rsaga.get.version(env)
 
 # Produce Spatial Parameters
