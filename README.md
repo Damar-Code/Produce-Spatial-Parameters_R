@@ -1,4 +1,4 @@
-# Produce-Spatial-Parameters_R
+# Produce-Spatial-Parameters_RSAGA
 
 Produced spatial parameters are important steps for any kind of topic in research, Such as: hazard/susceptibilty level of disaster, forestry, urban planning, minning, structural engineering and ect. In this section i will intoduced some method for producing the spatial parameters that might be usefull in all of the topics above, especially in hazard/susceptibility of natural disazter-it already become mandatory input.
 
